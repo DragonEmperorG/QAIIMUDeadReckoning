@@ -1,3 +1,5 @@
+import os
+
 import torch
 from torch import nn
 
@@ -10,7 +12,6 @@ from utils.lie_group_utils import so3exp, skew, sen3exp
 
 
 class InvariantExtendedKalmanFilter(nn.Module):
-
     SEQUENCE_LEN = 'SEQUENCE_LEN'
     INIT_NAV_ROTATION_MATRIX = 'INIT_NAV_ROTATION_MATRIX'
     INIT_NAV_VELOCITY = 'INIT_NAV_VELOCITY'
@@ -70,6 +71,27 @@ class InvariantExtendedKalmanFilter(nn.Module):
         }
         return predicted_data_dic
 
+    @staticmethod
+    def get_model_path(model_file_name):
+        experiments_folder_name = 'experiments'
+        experiments_folder_path = os.path.join(os.path.abspath('.'), experiments_folder_name)
+        if not os.path.isdir(experiments_folder_path):
+            os.mkdir(experiments_folder_path)
+
+        checkpoints_folder_name = 'checkpoints'
+        checkpoints_folder_path = os.path.join(experiments_folder_path, checkpoints_folder_name)
+        if not os.path.isdir(checkpoints_folder_path):
+            os.mkdir(checkpoints_folder_path)
+
+        model_file_path = os.path.join(checkpoints_folder_path, model_file_name)
+        return model_file_path
+
+    def load_filter(self, model_file_name):
+        self.load_state_dict(torch.load(InvariantExtendedKalmanFilter.get_model_path(model_file_name)))
+
+    def save_filter(self, model_file_name):
+        torch.save(self.state_dict(), InvariantExtendedKalmanFilter.get_model_path(model_file_name))
+
     def filter_init(self, sequence_data):
         self.prepare_filter(sequence_data)
         self.filter_init_state(sequence_data)
@@ -125,37 +147,38 @@ class InvariantExtendedKalmanFilter(nn.Module):
     def filter_propagate(self, i):
         base_state_nav_rotation_matrix = self.state_nav_rotation_matrix[i - 1, :, :].clone()
 
-        imu_gyroscope = self.measurement_gyroscope[i-1, :] - self.state_imu_gyroscope_bias[i-1, :]
-        delta_nav_rotation_matrix = imu_gyroscope * self.measurement_delta_time[i-1]
+        imu_gyroscope = self.measurement_gyroscope[i - 1, :] - self.state_imu_gyroscope_bias[i - 1, :]
+        delta_nav_rotation_matrix = imu_gyroscope * self.measurement_delta_time[i - 1]
         propagate_state_nav_rotation_matrix = base_state_nav_rotation_matrix.mm(so3exp(delta_nav_rotation_matrix))
-        imu_accelerometer = self.measurement_accelerometer[i-1, :] - self.state_imu_accelerometer_bias[i-1, :]
+        imu_accelerometer = self.measurement_accelerometer[i - 1, :] - self.state_imu_accelerometer_bias[i - 1, :]
         nav_accelerometer = base_state_nav_rotation_matrix.mv(imu_accelerometer) + self.g
-        propagate_state_nav_velocity = self.state_nav_velocity[i-1, :] + nav_accelerometer * self.measurement_delta_time[i-1]
-        propagate_state_nav_position = self.state_nav_position[i-1, :] + (self.state_nav_velocity[i-1, :].clone() + propagate_state_nav_velocity.clone()) * self.measurement_delta_time[i-1] * 0.5
-        propagate_state_imu_gyroscope_bias = self.state_imu_gyroscope_bias[i-1, :]
-        propagate_state_imu_accelerometer_bias = self.state_imu_accelerometer_bias[i-1, :]
-        propagate_state_car_rotation_matrix = self.state_car_rotation_matrix[i-1, :, :]
-        propagate_state_car_position = self.state_car_position[i-1, :]
+        propagate_state_nav_velocity = self.state_nav_velocity[i - 1, :] + nav_accelerometer * self.measurement_delta_time[i - 1]
+        propagate_state_nav_position = self.state_nav_position[i - 1, :] + (self.state_nav_velocity[i - 1, :].clone() + propagate_state_nav_velocity.clone()) * \
+                                       self.measurement_delta_time[i - 1] * 0.5
+        propagate_state_imu_gyroscope_bias = self.state_imu_gyroscope_bias[i - 1, :]
+        propagate_state_imu_accelerometer_bias = self.state_imu_accelerometer_bias[i - 1, :]
+        propagate_state_car_rotation_matrix = self.state_car_rotation_matrix[i - 1, :, :]
+        propagate_state_car_position = self.state_car_position[i - 1, :]
 
         f_state_jacobian_matrix = torch.zeros(self.state_dim, self.state_dim)
         f_state_jacobian_matrix[3:6, :3] = skew(self.g)
         f_state_jacobian_matrix[6:9, 3:6] = TENSOR_EYE3
         f_state_jacobian_matrix[:3, 9:12] = -base_state_nav_rotation_matrix
-        f_state_jacobian_matrix[3:6, 9:12] = -skew(self.state_nav_velocity[i-1, :]).mm(base_state_nav_rotation_matrix)
-        f_state_jacobian_matrix[6:9, 9:12] = -skew(self.state_nav_position[i-1, :]).mm(base_state_nav_rotation_matrix)
+        f_state_jacobian_matrix[3:6, 9:12] = -skew(self.state_nav_velocity[i - 1, :]).mm(base_state_nav_rotation_matrix)
+        f_state_jacobian_matrix[6:9, 9:12] = -skew(self.state_nav_position[i - 1, :]).mm(base_state_nav_rotation_matrix)
         f_state_jacobian_matrix[3:6, 12:15] = -base_state_nav_rotation_matrix
-        f_state_jacobian_matrix = f_state_jacobian_matrix * self.measurement_delta_time[i-1]
+        f_state_jacobian_matrix = f_state_jacobian_matrix * self.measurement_delta_time[i - 1]
         f_state_jacobian_matrix_square = f_state_jacobian_matrix.mm(f_state_jacobian_matrix)
         f_state_jacobian_matrix_cube = f_state_jacobian_matrix_square.mm(f_state_jacobian_matrix)
-        f_state_jacobian_matrix_phi = TENSOR_EYE21 + f_state_jacobian_matrix + 1.0/2*f_state_jacobian_matrix_square + 1.0/6*f_state_jacobian_matrix_cube
+        f_state_jacobian_matrix_phi = TENSOR_EYE21 + f_state_jacobian_matrix + 1.0 / 2 * f_state_jacobian_matrix_square + 1.0 / 6 * f_state_jacobian_matrix_cube
 
         f_noise_jacobian_matrix = torch.zeros(self.state_dim, self.noise_dim, dtype=torch.float64)
         f_noise_jacobian_matrix[:9, :6] = -f_state_jacobian_matrix[:9, 9:15]
         f_noise_jacobian_matrix[9:21, 6:18] = TENSOR_EYE12
-        f_noise_jacobian_matrix = f_noise_jacobian_matrix * self.measurement_delta_time[i-1]
+        f_noise_jacobian_matrix = f_noise_jacobian_matrix * self.measurement_delta_time[i - 1]
 
-        propagate_state_covariance = f_state_jacobian_matrix_phi\
-            .mm(self.state_covariance + f_noise_jacobian_matrix.mm(self.noise_covariance).mm(f_noise_jacobian_matrix.t()))\
+        propagate_state_covariance = f_state_jacobian_matrix_phi \
+            .mm(self.state_covariance + f_noise_jacobian_matrix.mm(self.noise_covariance).mm(f_noise_jacobian_matrix.t())) \
             .mm(f_state_jacobian_matrix_phi.t())
 
         propagate_state = {
@@ -171,12 +194,14 @@ class InvariantExtendedKalmanFilter(nn.Module):
         return propagate_state
 
     def filter_update(self, i, propagated_state):
-
-        propagate_measurement_gyroscope = self.measurement_gyroscope[i-1, :] - propagated_state[InvariantExtendedKalmanFilter.PROPAGATE_STATE_IMU_GYROSCOPE_BIAS]
+        propagate_measurement_gyroscope = self.measurement_gyroscope[i - 1, :] - propagated_state[InvariantExtendedKalmanFilter.PROPAGATE_STATE_IMU_GYROSCOPE_BIAS]
         propagate_measurement_gyroscope_skew = skew(propagate_measurement_gyroscope)
-        propagate_state_nav_car_rotation_matrix = propagated_state[InvariantExtendedKalmanFilter.PROPAGATE_STATE_NAV_ROTATION_MATRIX].mm(propagated_state[InvariantExtendedKalmanFilter.PROPAGATE_STATE_CAR_ROTATION_MATRIX])
-        propagate_state_imu_velocity = propagated_state[InvariantExtendedKalmanFilter.PROPAGATE_STATE_NAV_ROTATION_MATRIX].t().mv(propagated_state[InvariantExtendedKalmanFilter.PROPAGATE_STATE_NAV_VELOCITY])
-        propagate_state_car_velocity = propagated_state[InvariantExtendedKalmanFilter.PROPAGATE_STATE_CAR_ROTATION_MATRIX].t().mv(propagate_state_imu_velocity) + skew(propagated_state[InvariantExtendedKalmanFilter.PROPAGATE_STATE_CAR_POSITION]).mv(propagate_measurement_gyroscope)
+        propagate_state_nav_car_rotation_matrix = propagated_state[InvariantExtendedKalmanFilter.PROPAGATE_STATE_NAV_ROTATION_MATRIX].mm(
+            propagated_state[InvariantExtendedKalmanFilter.PROPAGATE_STATE_CAR_ROTATION_MATRIX])
+        propagate_state_imu_velocity = propagated_state[InvariantExtendedKalmanFilter.PROPAGATE_STATE_NAV_ROTATION_MATRIX].t().mv(
+            propagated_state[InvariantExtendedKalmanFilter.PROPAGATE_STATE_NAV_VELOCITY])
+        propagate_state_car_velocity = propagated_state[InvariantExtendedKalmanFilter.PROPAGATE_STATE_CAR_ROTATION_MATRIX].t().mv(propagate_state_imu_velocity) + skew(
+            propagated_state[InvariantExtendedKalmanFilter.PROPAGATE_STATE_CAR_POSITION]).mv(propagate_measurement_gyroscope)
 
         h_function_car_velocity = propagated_state[InvariantExtendedKalmanFilter.PROPAGATE_STATE_CAR_ROTATION_MATRIX].t().mm(skew(propagate_state_imu_velocity))
         h_function_car_position = -skew(propagated_state[InvariantExtendedKalmanFilter.PROPAGATE_STATE_CAR_POSITION])
@@ -197,8 +222,10 @@ class InvariantExtendedKalmanFilter(nn.Module):
 
         delta_filter_state_nav_rotation_matrix, delta_filter_state_nav_velocity, delta_filter_state_nav_position = sen3exp(delta_filter_state[:9])
         update_state_nav_rotation_matrix = delta_filter_state_nav_rotation_matrix.mm(propagated_state[InvariantExtendedKalmanFilter.PROPAGATE_STATE_NAV_ROTATION_MATRIX])
-        update_state_nav_velocity = delta_filter_state_nav_rotation_matrix.mv(propagated_state[InvariantExtendedKalmanFilter.PROPAGATE_STATE_NAV_VELOCITY]) + delta_filter_state_nav_velocity
-        update_state_nav_position = delta_filter_state_nav_rotation_matrix.mv(propagated_state[InvariantExtendedKalmanFilter.PROPAGATE_STATE_NAV_POSITION]) + delta_filter_state_nav_position
+        update_state_nav_velocity = delta_filter_state_nav_rotation_matrix.mv(
+            propagated_state[InvariantExtendedKalmanFilter.PROPAGATE_STATE_NAV_VELOCITY]) + delta_filter_state_nav_velocity
+        update_state_nav_position = delta_filter_state_nav_rotation_matrix.mv(
+            propagated_state[InvariantExtendedKalmanFilter.PROPAGATE_STATE_NAV_POSITION]) + delta_filter_state_nav_position
         update_state_imu_gyroscope_bias = propagated_state[InvariantExtendedKalmanFilter.PROPAGATE_STATE_IMU_GYROSCOPE_BIAS] + delta_filter_state[9:12]
         update_state_imu_accelerometer_bias = propagated_state[InvariantExtendedKalmanFilter.PROPAGATE_STATE_IMU_ACCELEROMETER_BIAS] + delta_filter_state[12:15]
 
@@ -207,7 +234,8 @@ class InvariantExtendedKalmanFilter(nn.Module):
         update_state_car_position = propagated_state[InvariantExtendedKalmanFilter.PROPAGATE_STATE_CAR_POSITION] + delta_filter_state[18:21]
 
         function_i_kh = TENSOR_EYE21 - filter_gain_k.mm(filter_function_h)
-        update_state_covariance_raw = function_i_kh.mm(propagated_state[InvariantExtendedKalmanFilter.PROPAGATE_STATE_COVARIANCE]).mm(function_i_kh.t()) + filter_gain_k.mm(measurement_covariance_r).mm(filter_gain_k.t())
+        update_state_covariance_raw = function_i_kh.mm(propagated_state[InvariantExtendedKalmanFilter.PROPAGATE_STATE_COVARIANCE]).mm(function_i_kh.t()) + filter_gain_k.mm(
+            measurement_covariance_r).mm(filter_gain_k.t())
         update_state_covariance = (update_state_covariance_raw + update_state_covariance_raw.t()) * 0.5
 
         update_state = {

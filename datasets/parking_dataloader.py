@@ -8,24 +8,24 @@ from utils.files.preprocessing_colleted_file_util import load_preprocessing_coll
 DEEPODO_DATALOADER_CONFIG_TRAIN_LABEL = 'TRAIN'
 DEEPODO_DATALOADER_CONFIG_TEST_LABEL = 'TEST'
 
+DEEPODO_DATALOADER_CONFIG = [
+    ['TEST', '2023_04_10', '0008', 'HUAWEI_Mate30'],
+    ['TRAIN', '2023_04_10', '0009', 'HUAWEI_Mate30'],
+    ['TRAIN', '2023_04_10', '0010', 'HUAWEI_Mate30'],
+    ['TRAIN', '2023_04_10', '0011', 'HUAWEI_Mate30'],
+    ['TRAIN', '2023_04_10', '0012', 'HUAWEI_Mate30'],
+    ['TRAIN', '2023_04_10', '0013', 'HUAWEI_Mate30'],
+    ['TRAIN', '2023_04_10', '0014', 'HUAWEI_Mate30'],
+    ['TRAIN', '2023_04_10', '0015', 'HUAWEI_Mate30'],
+    ['TRAIN', '2023_04_10', '0016', 'HUAWEI_Mate30'],
+    ['TRAIN', '2023_04_10', '0017', 'HUAWEI_Mate30'],
+    ['TRAIN', '2023_04_10', '0018', 'HUAWEI_Mate30'],
+]
+
 # DEEPODO_DATALOADER_CONFIG = [
 #     ['TRAIN', '2023_04_10', '0008', 'HUAWEI_Mate30'],
-#     ['TRAIN', '2023_04_10', '0009', 'HUAWEI_Mate30'],
-#     ['TRAIN', '2023_04_10', '0010', 'HUAWEI_Mate30'],
-#     ['TRAIN', '2023_04_10', '0011', 'HUAWEI_Mate30'],
-#     ['TRAIN', '2023_04_10', '0012', 'HUAWEI_Mate30'],
-#     ['TRAIN', '2023_04_10', '0013', 'HUAWEI_Mate30'],
-#     ['TRAIN', '2023_04_10', '0014', 'HUAWEI_Mate30'],
-#     ['TRAIN', '2023_04_10', '0015', 'HUAWEI_Mate30'],
-#     ['TRAIN', '2023_04_10', '0016', 'HUAWEI_Mate30'],
-#     ['TRAIN', '2023_04_10', '0017', 'HUAWEI_Mate30'],
 #     ['TEST', '2023_04_10', '0018', 'HUAWEI_Mate30'],
 # ]
-
-DEEPODO_DATALOADER_CONFIG = [
-    ['TRAIN', '2023_04_10', '0008', 'HUAWEI_Mate30'],
-    ['TEST', '2023_04_10', '0018', 'HUAWEI_Mate30'],
-]
 
 
 def load(root_folder_path):

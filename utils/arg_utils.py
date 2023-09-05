@@ -1,9 +1,11 @@
 class ScriptArgs:
     datasets_base_folder_path = "E:\\DoctorRelated\\20230410重庆VDR数据采集"
-    epochs = 300
+    epochs = 100
     seq_len = 12000
     max_loss = 2e1
     max_grad_norm = 1e0
+    continue_training = False
+    model_file_name = "filter_schedule_20230905_085956_epoch_0_100_loss_297352.p"
 
 
 def load_args(args_input_mode):

@@ -29,8 +29,10 @@ class TrackDataset:
 
     RELATIVE_SEQUENCE_LENGTH = [100, 200, 300, 400, 500, 600, 700, 800, 900]
 
-    def __init__(self, track_folder_path, normalize_factors):
-        track_dataset_dic = TrackDataset.load_data(track_folder_path)
+    def __init__(self, track_phone_folder_path, normalize_factors):
+        track_folder_path, self.phone_folder_name = os.path.split(track_phone_folder_path)
+        _, self.track_folder_name = os.path.split(track_folder_path)
+        track_dataset_dic = TrackDataset.load_data(track_phone_folder_path)
         self.timestamp = track_dataset_dic[TIMESTAMP]
         self.phone_measurement_gyroscope = track_dataset_dic[PHONE_MEASUREMENT_GYROSCOPE]
         self.phone_measurement_accelerometer = track_dataset_dic[PHONE_MEASUREMENT_ACCELEROMETER]
@@ -49,6 +51,12 @@ class TrackDataset:
             axis=1
         )
         self.phone_measurement_normalized = (phone_measurement - normalize_factors['mean']) / normalize_factors['std']
+
+    def get_track_name(self):
+        return self.track_folder_name
+
+    def get_phone_name(self):
+        return self.phone_folder_name
 
     @staticmethod
     def load_data(folder_path):
