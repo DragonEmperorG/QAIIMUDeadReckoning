@@ -114,12 +114,16 @@ PREPROCESSING_COLLECTED_PHONE_IMU_FILE_NAME = 'TrackSynchronizedPhoneIMU.npy'
 # ]
 
 
-def load_preprocessing_collected_phone_imu_data(folder_path):
-    preprocessing_collected_phone_imu_file_path = os.path.join(
+def get_preprocessing_collected_phone_imu_data_file_path(folder_path):
+    return os.path.join(
         folder_path,
         PREPROCESSING_COLLECTED_FOLDER_NAME,
         PREPROCESSING_COLLECTED_PHONE_IMU_FILE_NAME
     )
+
+
+def load_preprocessing_collected_phone_imu_data(folder_path):
+    preprocessing_collected_phone_imu_file_path = get_preprocessing_collected_phone_imu_data_file_path(folder_path)
     if os.path.isfile(preprocessing_collected_phone_imu_file_path):
         return np.load(preprocessing_collected_phone_imu_file_path)
     else:

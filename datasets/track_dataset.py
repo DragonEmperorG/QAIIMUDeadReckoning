@@ -68,7 +68,7 @@ class TrackDataset:
 
         if os.path.isdir(vdr_dataset_folder_path):
             vdr_dataset_file_path = os.path.join(vdr_dataset_folder_path, TrackDataset.VDR_DATASET_FILE_NAME)
-            if os.path.isfile(vdr_dataset_file_path) & False:
+            if os.path.isfile(vdr_dataset_file_path):
                 vdr_dataset = np.load(vdr_dataset_file_path)
             else:
                 vdr_dataset = TrackDataset.load_preprocessing_data(folder_path)

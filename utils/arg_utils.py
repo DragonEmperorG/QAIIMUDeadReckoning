@@ -1,9 +1,14 @@
+import os
+
+
 class ScriptArgs:
-    datasets_base_folder_path = "E:\\DoctorRelated\\20230410重庆VDR数据采集"
+    # datasets_base_folder_path = "E:\\DoctorRelated\\20230410重庆VDR数据采集"
+    reference_folder_path = os.path.abspath('.')
+    datasets_base_folder_path = os.path.normpath(os.path.join(reference_folder_path, 'datas'))
     epochs = 100
     seq_len = 12000
     max_loss = 2e1
-    max_grad_norm = 1e0
+    max_grad_norm = 1e1
     continue_training = False
     model_file_name = "filter_schedule_20230905_085956_epoch_0_100_loss_297352.p"
 
