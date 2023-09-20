@@ -40,7 +40,7 @@ def train_filter(args, datasets, model, loss_fn, optimizer):
             tail_time = time.time()
             delta_time = tail_time - head_time
             #
-            ground_truth_relative_translation, predicted_relative_translation = dataset_track.prepare_sample_relative_translation(sampled_sequence, predicted_sequence)
+            ground_truth_relative_translation, predicted_relative_translation = dataset_track.prepare_sample_relative_translation(sampled_sequence, predicted_sequence, args.device)
             if ground_truth_relative_translation is None:
                 logger.warning('{} | Not have relative translation', log_track)
             else:
@@ -61,8 +61,8 @@ def train_filter(args, datasets, model, loss_fn, optimizer):
         if loss_datasets == 0:
             logger.warning('{} | Zero loss', log_total_loss)
         else:
-            loss_datasets.backward()
-            # loss_train.cuda().backward()
+            # loss_datasets.backward()
+            loss_datasets.cuda().backward()
             g_norm = nn.utils.clip_grad_norm_(model.parameters(), train_max_grad_norm)
             log_total_norm = "{} | Total norm {:.3f}".format(log_total_loss, g_norm)
             if np.isnan(g_norm) or g_norm > 3 * train_max_grad_norm:

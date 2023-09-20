@@ -1,5 +1,7 @@
 import os
 
+import torch
+
 
 class ScriptArgs:
     # datasets_base_folder_path = "E:\\DoctorRelated\\20230410重庆VDR数据采集"
@@ -10,7 +12,14 @@ class ScriptArgs:
     max_loss = 2e1
     max_grad_norm = 1e1
     continue_training = False
-    model_file_name = "filter_schedule_20230905_085956_epoch_0_100_loss_297352.p"
+    model_file_name = "filter_schedule_20230919_160509_epoch_0_100_loss_21084678.p"
+    device = (
+        "cuda"
+        if torch.cuda.is_available()
+        else "mps"
+        if torch.backends.mps.is_available()
+        else "cpu"
+    )
 
 
 def load_args(args_input_mode):

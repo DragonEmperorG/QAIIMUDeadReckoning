@@ -198,7 +198,7 @@ class TrackDataset:
 
         return collection_relative_translation
 
-    def prepare_sample_relative_translation(self, sampled_sequence, predicted_sequence):
+    def prepare_sample_relative_translation(self, sampled_sequence, predicted_sequence, device):
         sample_index = sampled_sequence.sample_index
         sample_len = sampled_sequence.timestamp.shape[0]
 
@@ -212,7 +212,7 @@ class TrackDataset:
 
         sampled_relative_translation_head_index = relative_translation_head_index[sample_relative_translation_index]
         sampled_relative_translation_tail_index = relative_translation_tail_index[sample_relative_translation_index]
-        sampled_relative_translation = torch.tensor(relative_translation[sample_relative_translation_index]).clone()
+        sampled_relative_translation = torch.tensor(relative_translation[sample_relative_translation_index]).clone().to(device)
 
         if len(sampled_relative_translation_head_index) == 0:
             return None, None
