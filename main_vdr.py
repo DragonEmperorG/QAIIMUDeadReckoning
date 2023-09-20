@@ -12,9 +12,10 @@ ARGS_INPUT_MODE = 0
 def main(args):
     train_dataset, test_dataset = load(args.datasets_base_folder_path)
 
-    model = InvariantExtendedKalmanFilter()
+    model = InvariantExtendedKalmanFilter(args.device)
     if args.continue_training:
         model.load_filter(args.model_file_name)
+    model.to(args.device)
 
     criterion = torch.nn.MSELoss(reduction="sum")
 

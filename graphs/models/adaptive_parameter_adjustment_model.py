@@ -3,13 +3,13 @@ from torch import nn
 
 
 class AdaptiveParameterAdjustmentModel(nn.Module):
-    def __init__(self):
+    def __init__(self, device):
         super().__init__()
-        self.factor_beta = 3 * torch.ones(3)
+        self.factor_beta = 3 * torch.ones(3).to(device)
         self.cov_lat = 1
         self.cov_lon = 5
         self.cov_up = 10
-        self.pseudo_measurement_covariance_base = torch.tensor([self.cov_lat, self.cov_lon, self.cov_up])
+        self.pseudo_measurement_covariance_base = torch.tensor([self.cov_lat, self.cov_lon, self.cov_up]).to(device)
 
         self.cov_net = nn.Sequential(
             nn.Conv1d(6, 32, 5),
