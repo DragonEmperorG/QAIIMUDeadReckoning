@@ -19,7 +19,7 @@ def main(args):
 
     criterion = torch.nn.MSELoss(reduction="sum")
 
-    learn_rate = 0.0001
+    learn_rate = 0.00001
     optimizer = torch.optim.Adam(model.parameters(), lr=learn_rate)
 
     train_filter(args, train_dataset, model, criterion, optimizer)

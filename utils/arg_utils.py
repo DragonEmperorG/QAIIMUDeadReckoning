@@ -9,10 +9,10 @@ class ScriptArgs:
     datasets_base_folder_path = os.path.normpath(os.path.join(reference_folder_path, 'datas'))
     epochs = 100
     seq_len = 12000
-    max_loss = 2e1
-    max_grad_norm = 1e1
-    continue_training = False
-    model_file_name = "filter_schedule_20230919_160509_epoch_0_100_loss_21084678.p"
+    max_loss = 20
+    max_grad_norm = 50
+    continue_training = True
+    model_file_name = "filter_schedule_20230921_082258_epoch_57_100_loss_11263297.p"
     device = (
         "cuda"
         if torch.cuda.is_available()
