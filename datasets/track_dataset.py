@@ -52,6 +52,8 @@ class TrackDataset:
         )
         self.phone_measurement_normalized = (phone_measurement - normalize_factors['mean']) / normalize_factors['std']
 
+        self.train_loss_min = np.finfo(np.float64).max
+
     def get_track_name(self):
         return self.track_folder_name
 

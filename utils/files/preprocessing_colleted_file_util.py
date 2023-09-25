@@ -3,7 +3,7 @@ import os
 import numpy as np
 import pandas as pd
 
-from utils.log_utils import get_logger
+from utils.logs.log_utils import get_logger
 
 DATA_TIMESTAMP = 'DATA_TIMESTAMP'
 PHONE_ACCELEROMETER_X = 'PHONE_ACCELEROMETER_X'

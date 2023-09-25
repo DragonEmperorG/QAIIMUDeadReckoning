@@ -4,7 +4,7 @@ from datasets.parking_dataloader import load
 from graphs.models.invariant_extended_kalman_filter import InvariantExtendedKalmanFilter
 from train_vdr import train_filter
 from utils.arg_utils import load_args
-from utils.log_utils import init_logger, get_logger
+from utils.logs.log_utils import init_logger, get_logger
 
 ARGS_INPUT_MODE = 0
 

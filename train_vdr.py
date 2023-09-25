@@ -1,12 +1,12 @@
 import math
+import os.path
 import time
 
 import numpy as np
 import torch
 from torch import nn
 
-from datasets.track_dataset import TrackDataset
-from utils.log_utils import get_logger
+from utils.logs.log_utils import get_logger
 
 
 def train_filter(args, datasets, model, loss_fn, optimizer):
@@ -19,15 +19,36 @@ def train_filter(args, datasets, model, loss_fn, optimizer):
     logger = get_logger()
 
     model.train()
-    train_min_loss = np.finfo(np.float64).max
+    train_sum_loss_min = np.finfo(np.float64).max
+    train_avg_loss_min = np.finfo(np.float64).max
     schedule_name = time.strftime("%Y%m%d_%H%M%S", time.localtime(time.time()))
+
+    train_log_file_path = os.path.join('.', 'experiments', 'train_log.log')
+    with open(train_log_file_path, 'a') as file:
+        new_log_head = "New train start at {}, schedule epochs {}".format(schedule_name, train_epochs)
+        track_sequence = 'Epochs'
+        for i, dataset_track in enumerate(datasets):
+            track_sequence += ', T' + dataset_track.track_folder_name
+        file.write("\n")
+        file.write(new_log_head)
+        file.write("\n")
+        file.write(track_sequence)
 
     for train_epoch_num in range(train_epochs):
 
-        loss_datasets = 0
         optimizer.zero_grad()
 
         log_epoch = "| Epoch {}".format(train_epoch_num)
+
+        # 配置模型保存的条件
+        # 条件1：任意一条轨迹的loss更新最小值
+        # 条件2：每轮epoch的有效loss求和更新最小值
+        # 条件3：每轮epoch的有效loss平均更新最小值
+        save_model_flag = False
+        epoch_sum_loss = 0
+        epoch_num_loss = 0
+        log_file_epoch = '{:6d}'.format(train_epoch_num)
+
         for i, dataset_track in enumerate(datasets):
             #
             dataset = datasets[i]
@@ -46,7 +67,10 @@ def train_filter(args, datasets, model, loss_fn, optimizer):
             else:
                 #
                 loss_sequence = loss_fn(ground_truth_relative_translation, predicted_relative_translation)
-                log_loss = "{} | Loss {:.3f}".format(log_track, loss_sequence)
+
+                log_loss = '{} | Loss {:6.3f}'.format(log_track, loss_sequence)
+                log_file_epoch += ', {:.3f}'.format(loss_sequence)
+
                 if torch.isnan(loss_sequence):
                     logger.warning('{} | Nan loss', log_loss)
                     continue
@@ -55,25 +79,47 @@ def train_filter(args, datasets, model, loss_fn, optimizer):
                     continue
                 else:
                     logger.info(log_loss)
-                    loss_datasets += loss_sequence
+                    epoch_sum_loss += loss_sequence
+                    epoch_num_loss += 1
 
-        log_total_loss = "{} | Total loss {:.3f}".format(log_epoch, loss_datasets)
-        if loss_datasets == 0:
+                # 满足条件1保存本轮模型
+                if loss_sequence < dataset_track.train_loss_min:
+                    dataset_track.train_loss_min = loss_sequence
+                    if not save_model_flag:
+                        save_model_flag = True
+
+        with open(train_log_file_path, 'a') as file:
+            file.write("\n")
+            file.write(log_file_epoch)
+
+        log_total_loss = "{} | Total loss {:.3f}".format(log_epoch, epoch_sum_loss)
+        if epoch_sum_loss == 0:
             logger.warning('{} | Zero loss', log_total_loss)
         else:
-            # loss_datasets.backward()
-            loss_datasets.cuda().backward()
+            epoch_sum_loss.backward()
+            # loss_datasets.cuda().backward()
             g_norm = nn.utils.clip_grad_norm_(model.parameters(), train_max_grad_norm)
             log_total_norm = "{} | Total norm {:.3f}".format(log_total_loss, g_norm)
             if np.isnan(g_norm.cpu()) or g_norm.cpu() > 3 * train_max_grad_norm:
                 logger.warning('{} | Max norm', log_total_norm)
             else:
-                if loss_datasets < train_min_loss:
-                    train_min_loss = loss_datasets
-                    file_name_loss = math.floor(train_min_loss * 1e6)
-                    file_name = "filter_schedule_{}_epoch_{}_{}_loss_{}.p".format(schedule_name, train_epoch_num, train_epochs, file_name_loss)
-                    model.save_filter(file_name)
+                # 满足条件2保存本轮模型
+                if epoch_sum_loss < train_sum_loss_min:
+                    train_sum_loss_min = epoch_sum_loss
+                    if not save_model_flag:
+                        save_model_flag = True
+
+                # 满足条件3保存本轮模型
+                epoch_avg_loss = epoch_sum_loss / epoch_num_loss
+                if epoch_avg_loss < train_avg_loss_min:
+                    train_avg_loss_min = epoch_avg_loss
+                    if not save_model_flag:
+                        save_model_flag = True
 
                 logger.info(log_total_norm)
                 optimizer.step()
 
+        if save_model_flag:
+            file_name_loss = math.floor(epoch_sum_loss * 1e6)
+            file_name = "filter_schedule_{}_epoch_{}_{}_loss_{}.p".format(schedule_name, train_epoch_num, train_epochs, file_name_loss)
+            model.save_filter(file_name)
