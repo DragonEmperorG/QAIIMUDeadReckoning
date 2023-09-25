@@ -65,7 +65,7 @@ def train_filter(args, datasets, model, loss_fn, optimizer):
             loss_datasets.cuda().backward()
             g_norm = nn.utils.clip_grad_norm_(model.parameters(), train_max_grad_norm)
             log_total_norm = "{} | Total norm {:.3f}".format(log_total_loss, g_norm)
-            if np.isnan(g_norm) or g_norm > 3 * train_max_grad_norm:
+            if np.isnan(g_norm.cpu()) or g_norm.cpu() > 3 * train_max_grad_norm:
                 logger.warning('{} | Max norm', log_total_norm)
             else:
                 if loss_datasets < train_min_loss:
