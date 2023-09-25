@@ -4,7 +4,7 @@ import os
 import numpy as np
 import pandas as pd
 
-from utils.log_utils import get_logger
+from utils.logs.log_utils import get_logger
 
 PREPROCESSING_PSEUDO_MEASUREMENT_FOLDER_NAME = 'DATASET_DEEPODO'
 PREPROCESSING_PSEUDO_MEASUREMENT_FILE_NAME = 'DeepOdoPredictData.txt'
