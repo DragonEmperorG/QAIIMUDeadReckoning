@@ -114,6 +114,34 @@ PREPROCESSING_COLLECTED_PHONE_IMU_FILE_NAME = 'TrackSynchronizedPhoneIMU.npy'
 # ]
 
 
+def get_track_phone_folder_path(root_folder_path, track_phone_folder_list):
+    datasets_collector_data_time_folder_name = track_phone_folder_list[1]
+    datasets_collector_data_time_folder_path = os.path.join(
+        root_folder_path,
+        datasets_collector_data_time_folder_name
+    )
+
+    datasets_preprocess_reorganized_folder_name = "Reorganized"
+    datasets_preprocess_reorganized_folder_path = os.path.join(
+        datasets_collector_data_time_folder_path,
+        datasets_preprocess_reorganized_folder_name
+    )
+
+    datasets_collector_track_folder_name = track_phone_folder_list[2]
+    datasets_collector_track_folder_path = os.path.join(
+        datasets_preprocess_reorganized_folder_path,
+        datasets_collector_track_folder_name
+    )
+
+    dataset_collector_phone_folder_name = track_phone_folder_list[3]
+    dataset_collector_phone_folder_path = os.path.join(
+        datasets_collector_track_folder_path,
+        dataset_collector_phone_folder_name
+    )
+
+    return dataset_collector_phone_folder_path
+
+
 def get_preprocessing_collected_phone_imu_data_file_path(folder_path):
     return os.path.join(
         folder_path,

@@ -8,16 +8,21 @@ from datasets.sequence_dataset import SequenceDataset
 from utils.constant_utils import SAMPLE_INDEX, TIMESTAMP, PSEUDO_MEASUREMENT_CAR_VELOCITY_FORWARD, \
     PHONE_MEASUREMENT_GYROSCOPE, PHONE_MEASUREMENT_ACCELEROMETER, PHONE_MEASUREMENT_NORMALIZED,\
     GROUND_TRUTH_NAV_ROTATION_MATRIX, GROUND_TRUTH_NAV_VELOCITY, GROUND_TRUTH_NAV_POSITION, \
-    FILTER_NAV_ROTATION_MATRIX, FILTER_NAV_POSITION
+    FILTER_NAV_ROTATION_MATRIX, FILTER_NAV_VELOCITY, FILTER_NAV_POSITION, \
+    FILTER_IMU_GYROSCOPE_BIAS, FILTER_IMU_ACCELEROMETER_BIAS, \
+    FILTER_CAR_ROTATION_MATRIX, FILTER_CAR_POSITION, \
+    FILTER_STATE_COVARIANCE, FILTER_NOISE_COVARIANCE, FILTER_MEASUREMENT_COVARIANCE
 from utils.data_utils import resample_data
 from utils.files.preprocessing_colleted_file_util import load_preprocessing_collected_data
 from utils.files.preprocessing_pseudo_measurement_file_util import load_preprocessing_pseudo_measurement_data
+from utils.logs.log_utils import get_logger
 
 
 class TrackDataset:
 
     VDR_DATASET_FOLDER_NAME = "DATASET_QAIIMUDEADRECKONING"
     VDR_DATASET_FILE_NAME = "QAIIMUDeadReckoningTrainData.npz"
+    VDR_DATASET_RESULT_FILE_NAME = "QAIIMUDeadReckoningResultData.npz"
 
     PHONE_GYROSCOPE_X = 'PHONE_GYROSCOPE_X'
     PHONE_GYROSCOPE_Y = 'PHONE_GYROSCOPE_Y'
@@ -30,6 +35,7 @@ class TrackDataset:
     RELATIVE_SEQUENCE_LENGTH = [100, 200, 300, 400, 500, 600, 700, 800, 900]
 
     def __init__(self, track_phone_folder_path, normalize_factors):
+        self.track_phone_folder_path = track_phone_folder_path
         track_folder_path, self.phone_folder_name = os.path.split(track_phone_folder_path)
         _, self.track_folder_name = os.path.split(track_folder_path)
         track_dataset_dic = TrackDataset.load_data(track_phone_folder_path)
@@ -154,6 +160,30 @@ class TrackDataset:
         }
         return SequenceDataset(random_sampled_sequence_dic)
 
+    def save_test_data(self, test_data):
+        vdr_dataset_folder_path = os.path.join(
+            self.track_phone_folder_path,
+            TrackDataset.VDR_DATASET_FOLDER_NAME
+        )
+        vdr_dataset_file_path = os.path.join(vdr_dataset_folder_path, TrackDataset.VDR_DATASET_RESULT_FILE_NAME)
+        np.savez(
+            vdr_dataset_file_path,
+            TIMESTAMP=test_data[TIMESTAMP].numpy(),
+            FILTER_NAV_ROTATION_MATRIX=test_data[FILTER_NAV_ROTATION_MATRIX].detach().numpy(),
+            FILTER_NAV_VELOCITY=test_data[FILTER_NAV_VELOCITY].detach().numpy(),
+            FILTER_NAV_POSITION=test_data[FILTER_NAV_POSITION].detach().numpy(),
+            FILTER_IMU_GYROSCOPE_BIAS=test_data[FILTER_IMU_GYROSCOPE_BIAS].detach().numpy(),
+            FILTER_IMU_ACCELEROMETER_BIAS=test_data[FILTER_IMU_ACCELEROMETER_BIAS].detach().numpy(),
+            FILTER_CAR_ROTATION_MATRIX=test_data[FILTER_CAR_ROTATION_MATRIX].detach().numpy(),
+            FILTER_CAR_POSITION=test_data[FILTER_CAR_POSITION].detach().numpy(),
+            FILTER_STATE_COVARIANCE=test_data[FILTER_STATE_COVARIANCE].detach().numpy(),
+            FILTER_NOISE_COVARIANCE=test_data[FILTER_NOISE_COVARIANCE].detach().numpy(),
+            FILTER_MEASUREMENT_COVARIANCE=test_data[FILTER_MEASUREMENT_COVARIANCE].detach().numpy()
+        )
+        logger = get_logger()
+        logger_str = 'Save file path {}'.format(vdr_dataset_file_path)
+        logger.info(logger_str)
+
     def random_sample_sequence_index(self, train_random_sample_seq_len):
         sequence_head_index = 0
         sequence_tail_index = self.timestamp.shape[0]
@@ -169,6 +199,32 @@ class TrackDataset:
             sequence_tail_index = sequence_head_index + train_random_sample_seq_len
 
         return sequence_head_index, sequence_tail_index
+
+    def prepare_test_sequence(self):
+        # random_sampled_sequence_dic = {
+        #     SAMPLE_INDEX: [0, self.timestamp.shape[0]],
+        #     TIMESTAMP: self.timestamp,
+        #     PHONE_MEASUREMENT_GYROSCOPE: self.phone_measurement_gyroscope,
+        #     PHONE_MEASUREMENT_ACCELEROMETER: self.phone_measurement_accelerometer,
+        #     PSEUDO_MEASUREMENT_CAR_VELOCITY_FORWARD: self.pseudo_measurement_car_velocity_forward,
+        #     GROUND_TRUTH_NAV_ROTATION_MATRIX: self.ground_truth_nav_rotation_matrix,
+        #     GROUND_TRUTH_NAV_VELOCITY: self.ground_truth_nav_velocity,
+        #     GROUND_TRUTH_NAV_POSITION: self.ground_truth_nav_position,
+        #     PHONE_MEASUREMENT_NORMALIZED: self.phone_measurement_normalized
+        # }
+        slice_index = np.arange(4000, self.timestamp.shape[0])
+        random_sampled_sequence_dic = {
+            SAMPLE_INDEX: slice_index,
+            TIMESTAMP: self.timestamp[slice_index],
+            PHONE_MEASUREMENT_GYROSCOPE: self.phone_measurement_gyroscope[slice_index, :],
+            PHONE_MEASUREMENT_ACCELEROMETER: self.phone_measurement_accelerometer[slice_index, :],
+            PSEUDO_MEASUREMENT_CAR_VELOCITY_FORWARD: self.pseudo_measurement_car_velocity_forward[slice_index],
+            GROUND_TRUTH_NAV_ROTATION_MATRIX: self.ground_truth_nav_rotation_matrix[slice_index, :, :],
+            GROUND_TRUTH_NAV_VELOCITY: self.ground_truth_nav_velocity[slice_index, :],
+            GROUND_TRUTH_NAV_POSITION: self.ground_truth_nav_position[slice_index, :],
+            PHONE_MEASUREMENT_NORMALIZED: self.phone_measurement_normalized[slice_index, :]
+        }
+        return SequenceDataset(random_sampled_sequence_dic)
 
     def prepare_ground_truth_relative_translation(self):
         collection_relative_translation = [[], [], []]

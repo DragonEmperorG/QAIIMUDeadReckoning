@@ -7,12 +7,7 @@ class ScriptArgs:
     # datasets_base_folder_path = "E:\\DoctorRelated\\20230410重庆VDR数据采集"
     reference_folder_path = os.path.abspath('.')
     datasets_base_folder_path = os.path.normpath(os.path.join(reference_folder_path, 'datas'))
-    epochs = 100
-    seq_len = 12000
-    max_loss = 2e1
-    max_grad_norm = 1e1
-    continue_training = False
-    model_file_name = "filter_schedule_20230919_160509_epoch_0_100_loss_21084678.p"
+
     device = (
         "cuda"
         if torch.cuda.is_available()
@@ -20,6 +15,18 @@ class ScriptArgs:
         if torch.backends.mps.is_available()
         else "cpu"
     )
+
+    train_filter = False
+    epochs = 100
+    seq_len = 12000
+    max_loss = 2e1
+    max_grad_norm = 1e1
+    continue_training = False
+    model_file_name = "filter_schedule_20231025_120725_epoch_154_500_loss_18989418.p"
+
+    test_filter = True
+
+    result_filter = True
 
 
 def load_args(args_input_mode):
