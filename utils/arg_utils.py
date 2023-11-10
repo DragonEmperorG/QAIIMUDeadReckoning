@@ -21,6 +21,18 @@ class ScriptArgs:
         else "cpu"
     )
 
+    train_filter = False
+    epochs = 100
+    seq_len = 12000
+    max_loss = 2e1
+    max_grad_norm = 1e1
+    continue_training = False
+    model_file_name = "filter_schedule_20231025_120725_epoch_154_500_loss_18989418.p"
+
+    test_filter = True
+
+    result_filter = True
+
 
 def load_args(args_input_mode):
     if args_input_mode == 1:
