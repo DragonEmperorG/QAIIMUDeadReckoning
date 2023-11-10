@@ -65,12 +65,13 @@ def train_filter(args, datasets, model, loss_fn, optimizer):
             )
             if ground_truth_relative_translation is None:
                 logger.warning('{} | Not have relative translation', log_track)
+                log_file_epoch += ', {:6.3f}'.format(-1)
             else:
                 #
                 loss_sequence = loss_fn(ground_truth_relative_translation, predicted_relative_translation)
 
                 log_loss = '{} | Loss {:6.3f}'.format(log_track, loss_sequence)
-                log_file_epoch += ', {:.3f}'.format(loss_sequence)
+                log_file_epoch += ', {:6.3f}'.format(loss_sequence)
 
                 if torch.isnan(loss_sequence):
                     logger.warning('{} | Nan loss', log_loss)
@@ -101,7 +102,7 @@ def train_filter(args, datasets, model, loss_fn, optimizer):
             # loss_datasets.cuda().backward()
             g_norm = nn.utils.clip_grad_norm_(model.parameters(), train_max_grad_norm)
             log_total_norm = "{} | Total norm {:.3f}".format(log_total_loss, g_norm)
-            if np.isnan(g_norm) or g_norm > 3 * train_max_grad_norm:
+            if np.isnan(g_norm.cpu()) or g_norm.cpu() > 3 * train_max_grad_norm:
                 logger.warning('{} | Max norm', log_total_norm)
             else:
                 # 满足条件2保存本轮模型

@@ -26,7 +26,7 @@ def main(args):
             model.load_filter(args.model_file_name)
         model.to(args.device)
 
-        learn_rate = 0.0001
+        learn_rate = 0.00001
         optimizer = torch.optim.Adam(model.parameters(), lr=learn_rate)
 
         train_filter(args, train_dataset, model, criterion, optimizer)
