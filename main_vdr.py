@@ -12,6 +12,8 @@ ARGS_INPUT_MODE = 0
 
 
 def main(args):
+    logger_main = get_logger()
+
     train_dataset, test_dataset = load(args.datasets_base_folder_path)
 
     model = InvariantExtendedKalmanFilter(args.device)
@@ -19,7 +21,7 @@ def main(args):
     criterion = torch.nn.MSELoss(reduction="sum")
 
     if args.train_filter:
-
+        logger_main.info("Start running train task")
         if args.continue_training:
             model.load_filter(args.model_file_name)
         model.to(args.device)
@@ -30,24 +32,26 @@ def main(args):
         train_filter(args, train_dataset, model, criterion, optimizer)
 
     if args.test_filter:
+        logger_main.info("Start running test task")
         model.load_filter(args.model_file_name)
         model.to(args.device)
 
         test_filter(args, test_dataset, model, criterion)
 
     if args.result_filter:
+        logger_main.info("Start running result task")
+
         result_filter(args)
 
-    logger_main = get_logger()
-    logger_main.info("Done!")
+    logger_main.info("Finished task!")
 
 
 if __name__ == '__main__':
     #
     init_logger()
     logger = get_logger()
-    logger.info("An info")
 
     loaded_args = load_args(ARGS_INPUT_MODE)
+    logger.info("Loaded task configuration")
 
     main(loaded_args)

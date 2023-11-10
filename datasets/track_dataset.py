@@ -32,7 +32,7 @@ class TrackDataset:
     PHONE_ACCELEROMETER_Z = 'PHONE_ACCELEROMETER_Z'
     PHONE_PRESSURE = 'PHONE_PRESSURE'
 
-    RELATIVE_SEQUENCE_LENGTH = [100, 200, 300, 400, 500, 600, 700, 800, 900]
+    RELATIVE_SEQUENCE_LENGTH = [50, 60, 70, 80, 90, 100, 200, 300, 400, 500, 600, 700, 800, 900]
 
     def __init__(self, track_phone_folder_path, normalize_factors):
         self.track_phone_folder_path = track_phone_folder_path
@@ -201,29 +201,29 @@ class TrackDataset:
         return sequence_head_index, sequence_tail_index
 
     def prepare_test_sequence(self):
-        # random_sampled_sequence_dic = {
-        #     SAMPLE_INDEX: [0, self.timestamp.shape[0]],
-        #     TIMESTAMP: self.timestamp,
-        #     PHONE_MEASUREMENT_GYROSCOPE: self.phone_measurement_gyroscope,
-        #     PHONE_MEASUREMENT_ACCELEROMETER: self.phone_measurement_accelerometer,
-        #     PSEUDO_MEASUREMENT_CAR_VELOCITY_FORWARD: self.pseudo_measurement_car_velocity_forward,
-        #     GROUND_TRUTH_NAV_ROTATION_MATRIX: self.ground_truth_nav_rotation_matrix,
-        #     GROUND_TRUTH_NAV_VELOCITY: self.ground_truth_nav_velocity,
-        #     GROUND_TRUTH_NAV_POSITION: self.ground_truth_nav_position,
-        #     PHONE_MEASUREMENT_NORMALIZED: self.phone_measurement_normalized
-        # }
-        slice_index = np.arange(4000, self.timestamp.shape[0])
         random_sampled_sequence_dic = {
-            SAMPLE_INDEX: slice_index,
-            TIMESTAMP: self.timestamp[slice_index],
-            PHONE_MEASUREMENT_GYROSCOPE: self.phone_measurement_gyroscope[slice_index, :],
-            PHONE_MEASUREMENT_ACCELEROMETER: self.phone_measurement_accelerometer[slice_index, :],
-            PSEUDO_MEASUREMENT_CAR_VELOCITY_FORWARD: self.pseudo_measurement_car_velocity_forward[slice_index],
-            GROUND_TRUTH_NAV_ROTATION_MATRIX: self.ground_truth_nav_rotation_matrix[slice_index, :, :],
-            GROUND_TRUTH_NAV_VELOCITY: self.ground_truth_nav_velocity[slice_index, :],
-            GROUND_TRUTH_NAV_POSITION: self.ground_truth_nav_position[slice_index, :],
-            PHONE_MEASUREMENT_NORMALIZED: self.phone_measurement_normalized[slice_index, :]
+            SAMPLE_INDEX: [0, self.timestamp.shape[0]],
+            TIMESTAMP: self.timestamp,
+            PHONE_MEASUREMENT_GYROSCOPE: self.phone_measurement_gyroscope,
+            PHONE_MEASUREMENT_ACCELEROMETER: self.phone_measurement_accelerometer,
+            PSEUDO_MEASUREMENT_CAR_VELOCITY_FORWARD: self.pseudo_measurement_car_velocity_forward,
+            GROUND_TRUTH_NAV_ROTATION_MATRIX: self.ground_truth_nav_rotation_matrix,
+            GROUND_TRUTH_NAV_VELOCITY: self.ground_truth_nav_velocity,
+            GROUND_TRUTH_NAV_POSITION: self.ground_truth_nav_position,
+            PHONE_MEASUREMENT_NORMALIZED: self.phone_measurement_normalized
         }
+        # slice_index = np.arange(4000, self.timestamp.shape[0])
+        # random_sampled_sequence_dic = {
+        #     SAMPLE_INDEX: slice_index,
+        #     TIMESTAMP: self.timestamp[slice_index],
+        #     PHONE_MEASUREMENT_GYROSCOPE: self.phone_measurement_gyroscope[slice_index, :],
+        #     PHONE_MEASUREMENT_ACCELEROMETER: self.phone_measurement_accelerometer[slice_index, :],
+        #     PSEUDO_MEASUREMENT_CAR_VELOCITY_FORWARD: self.pseudo_measurement_car_velocity_forward[slice_index],
+        #     GROUND_TRUTH_NAV_ROTATION_MATRIX: self.ground_truth_nav_rotation_matrix[slice_index, :, :],
+        #     GROUND_TRUTH_NAV_VELOCITY: self.ground_truth_nav_velocity[slice_index, :],
+        #     GROUND_TRUTH_NAV_POSITION: self.ground_truth_nav_position[slice_index, :],
+        #     PHONE_MEASUREMENT_NORMALIZED: self.phone_measurement_normalized[slice_index, :]
+        # }
         return SequenceDataset(random_sampled_sequence_dic)
 
     def prepare_ground_truth_relative_translation(self):
