@@ -15,7 +15,6 @@ def train_filter(args, datasets, model, loss_fn, optimizer):
     train_random_sample_seq_len = args.seq_len
     train_max_loss = args.max_loss
     train_max_grad_norm = args.max_grad_norm
-    datasets_len = len(datasets)
     logger = get_logger()
 
     model.train()
@@ -61,7 +60,9 @@ def train_filter(args, datasets, model, loss_fn, optimizer):
             tail_time = time.time()
             delta_time = tail_time - head_time
             #
-            ground_truth_relative_translation, predicted_relative_translation = dataset_track.prepare_sample_relative_translation(sampled_sequence, predicted_sequence, args.device)
+            ground_truth_relative_translation, predicted_relative_translation = (
+                dataset_track.prepare_sample_relative_translation(sampled_sequence, predicted_sequence, args.device)
+            )
             if ground_truth_relative_translation is None:
                 logger.warning('{} | Not have relative translation', log_track)
                 log_file_epoch += ', {:6.3f}'.format(-1)
@@ -122,5 +123,7 @@ def train_filter(args, datasets, model, loss_fn, optimizer):
 
         if save_model_flag:
             file_name_loss = math.floor(epoch_sum_loss * 1e6)
-            file_name = "filter_schedule_{}_epoch_{}_{}_loss_{}.p".format(schedule_name, train_epoch_num, train_epochs, file_name_loss)
+            file_name = "filter_schedule_{}_epoch_{}_{}_loss_{}.p".format(
+                schedule_name, train_epoch_num, train_epochs, file_name_loss
+            )
             model.save_filter(file_name)

@@ -22,6 +22,7 @@ DEEPODO_DATALOADER_CONFIG = [
     ['TEST', '2023_04_10', '0018', 'HUAWEI_Mate30'],
 ]
 
+
 def load(root_folder_path):
     train_list = []
     train_preprocessor = []
