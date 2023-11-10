@@ -64,12 +64,13 @@ def train_filter(args, datasets, model, loss_fn, optimizer):
             ground_truth_relative_translation, predicted_relative_translation = dataset_track.prepare_sample_relative_translation(sampled_sequence, predicted_sequence, args.device)
             if ground_truth_relative_translation is None:
                 logger.warning('{} | Not have relative translation', log_track)
+                log_file_epoch += ', {:6.3f}'.format(-1)
             else:
                 #
                 loss_sequence = loss_fn(ground_truth_relative_translation, predicted_relative_translation)
 
                 log_loss = '{} | Loss {:6.3f}'.format(log_track, loss_sequence)
-                log_file_epoch += ', {:.3f}'.format(loss_sequence)
+                log_file_epoch += ', {:6.3f}'.format(loss_sequence)
 
                 if torch.isnan(loss_sequence):
                     logger.warning('{} | Nan loss', log_loss)
