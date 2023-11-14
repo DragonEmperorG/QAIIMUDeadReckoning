@@ -168,17 +168,17 @@ class TrackDataset:
         vdr_dataset_file_path = os.path.join(vdr_dataset_folder_path, TrackDataset.VDR_DATASET_RESULT_FILE_NAME)
         np.savez(
             vdr_dataset_file_path,
-            TIMESTAMP=test_data[TIMESTAMP].numpy(),
-            FILTER_NAV_ROTATION_MATRIX=test_data[FILTER_NAV_ROTATION_MATRIX].detach().numpy(),
-            FILTER_NAV_VELOCITY=test_data[FILTER_NAV_VELOCITY].detach().numpy(),
-            FILTER_NAV_POSITION=test_data[FILTER_NAV_POSITION].detach().numpy(),
-            FILTER_IMU_GYROSCOPE_BIAS=test_data[FILTER_IMU_GYROSCOPE_BIAS].detach().numpy(),
-            FILTER_IMU_ACCELEROMETER_BIAS=test_data[FILTER_IMU_ACCELEROMETER_BIAS].detach().numpy(),
-            FILTER_CAR_ROTATION_MATRIX=test_data[FILTER_CAR_ROTATION_MATRIX].detach().numpy(),
-            FILTER_CAR_POSITION=test_data[FILTER_CAR_POSITION].detach().numpy(),
-            FILTER_STATE_COVARIANCE=test_data[FILTER_STATE_COVARIANCE].detach().numpy(),
-            FILTER_NOISE_COVARIANCE=test_data[FILTER_NOISE_COVARIANCE].detach().numpy(),
-            FILTER_MEASUREMENT_COVARIANCE=test_data[FILTER_MEASUREMENT_COVARIANCE].detach().numpy()
+            TIMESTAMP=test_data[TIMESTAMP].detach().cpu().numpy(),
+            FILTER_NAV_ROTATION_MATRIX=test_data[FILTER_NAV_ROTATION_MATRIX].detach().cpu().numpy(),
+            FILTER_NAV_VELOCITY=test_data[FILTER_NAV_VELOCITY].detach().cpu().numpy(),
+            FILTER_NAV_POSITION=test_data[FILTER_NAV_POSITION].detach().cpu().numpy(),
+            FILTER_IMU_GYROSCOPE_BIAS=test_data[FILTER_IMU_GYROSCOPE_BIAS].detach().cpu().numpy(),
+            FILTER_IMU_ACCELEROMETER_BIAS=test_data[FILTER_IMU_ACCELEROMETER_BIAS].detach().cpu().numpy(),
+            FILTER_CAR_ROTATION_MATRIX=test_data[FILTER_CAR_ROTATION_MATRIX].detach().cpu().numpy(),
+            FILTER_CAR_POSITION=test_data[FILTER_CAR_POSITION].detach().cpu().numpy(),
+            FILTER_STATE_COVARIANCE=test_data[FILTER_STATE_COVARIANCE].detach().cpu().numpy(),
+            FILTER_NOISE_COVARIANCE=test_data[FILTER_NOISE_COVARIANCE].detach().cpu().numpy(),
+            FILTER_MEASUREMENT_COVARIANCE=test_data[FILTER_MEASUREMENT_COVARIANCE].detach().cpu().numpy()
         )
         logger = get_logger()
         logger_str = 'Save file path {}'.format(vdr_dataset_file_path)
