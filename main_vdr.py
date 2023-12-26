@@ -1,4 +1,5 @@
 import torch
+from torch.utils.tensorboard import SummaryWriter
 
 from datasets.parking_dataloader import load
 from graphs.models.invariant_extended_kalman_filter import InvariantExtendedKalmanFilter
@@ -14,7 +15,15 @@ ARGS_INPUT_MODE = 0
 def main(args):
     logger_main = get_logger()
 
-    train_dataset, test_dataset = load(args.datasets_base_folder_path)
+    layout = {
+        "SDC2023": {
+            "loss": ["Multiline", ["Loss/train", "Loss/test"]],
+        },
+    }
+    writer = SummaryWriter()
+    writer.add_custom_scalars(layout)
+
+    train_dataset, test_dataset = load(args.datasets_base_folder_path, args)
 
     model = InvariantExtendedKalmanFilter(args.device)
 
@@ -26,10 +35,10 @@ def main(args):
             model.load_filter(args.model_file_name)
         model.to(args.device)
 
-        learn_rate = 0.00001
-        optimizer = torch.optim.Adam(model.parameters(), lr=learn_rate)
+        learning_rate = args.learning_rate
+        optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
 
-        train_filter(args, train_dataset, model, criterion, optimizer)
+        train_filter(args, train_dataset, test_dataset, model, criterion, optimizer, writer)
 
     if args.test_filter:
         logger_main.info("Start running test task")
@@ -53,5 +62,17 @@ if __name__ == '__main__':
 
     loaded_args = load_args(ARGS_INPUT_MODE)
     logger.info("Loaded task configuration")
+    if loaded_args.device == "cuda":
+        cuda_device_count = torch.cuda.device_count()
+        cuda_current_device = torch.cuda.current_device()
+        cuda_current_device_name = torch.cuda.get_device_name(cuda_current_device)
+        logger.info("Device: {}:{} | {}, total {}",
+                    loaded_args.device,
+                    cuda_current_device,
+                    cuda_current_device_name,
+                    cuda_device_count
+                    )
+    else:
+        logger.info("Device: {}", loaded_args.device)
 
     main(loaded_args)

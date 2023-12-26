@@ -8,6 +8,8 @@ from utils.constant_utils import GROUND_TRUTH_NAV_POSITION, FILTER_NAV_POSITION
 from utils.files.preprocessing_colleted_file_util import get_track_phone_folder_path
 from utils.logs.log_utils import get_logger
 
+DEEPODO_DATALOADER_CONFIG_RESULT_LABEL = 'RESULT'
+
 
 def result_filter(args):
 
@@ -15,13 +17,12 @@ def result_filter(args):
 
     logger_result = get_logger()
 
-    result_data_config = [
-        ['RESULT', '2023_04_10', '0018', 'HUAWEI_Mate30'],
-    ]
+    for i in range(len(args.datasets_train_test_config)):
 
-    for i in range(len(result_data_config)):
+        if DEEPODO_DATALOADER_CONFIG_RESULT_LABEL not in args.datasets_train_test_config[i][0]:
+            continue
 
-        dataset_collector_phone_folder_path = get_track_phone_folder_path(root_folder_path, result_data_config[i])
+        dataset_collector_phone_folder_path = get_track_phone_folder_path(root_folder_path, args.datasets_train_test_config[i])
 
         dataset_vdr_folder_path = os.path.join(
             dataset_collector_phone_folder_path,
