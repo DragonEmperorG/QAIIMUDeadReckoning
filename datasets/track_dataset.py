@@ -32,7 +32,9 @@ class TrackDataset:
     PHONE_ACCELEROMETER_Z = 'PHONE_ACCELEROMETER_Z'
     PHONE_PRESSURE = 'PHONE_PRESSURE'
 
-    RELATIVE_SEQUENCE_LENGTH = [50, 60, 70, 80, 90, 100, 200, 300, 400, 500, 600, 700, 800, 900]
+    # RELATIVE_SEQUENCE_LENGTH = [50, 60, 70, 80, 90, 100, 200, 300, 400, 500, 600, 700, 800, 900]
+    # RELATIVE_SEQUENCE_LENGTH = [100, 200, 300, 400, 500, 600, 700, 800, 900]
+    RELATIVE_SEQUENCE_LENGTH = [10, 20, 30, 40, 50, 60, 70, 80, 90, 100]
 
     def __init__(self, track_phone_folder_path, normalize_factors):
         self.track_phone_folder_path = track_phone_folder_path
@@ -46,6 +48,10 @@ class TrackDataset:
         self.ground_truth_nav_rotation_matrix = track_dataset_dic[GROUND_TRUTH_NAV_ROTATION_MATRIX].reshape(self.timestamp.shape[0], 3, 3)
         self.ground_truth_nav_velocity = track_dataset_dic[GROUND_TRUTH_NAV_VELOCITY]
         self.ground_truth_nav_position = track_dataset_dic[GROUND_TRUTH_NAV_POSITION]
+
+        ground_truth_nav_velocity_expand_dims = np.expand_dims(self.ground_truth_nav_velocity, 2)
+        ground_truth_imu_velocity = np.matmul(np.transpose(self.ground_truth_nav_rotation_matrix, (0, 2, 1)), ground_truth_nav_velocity_expand_dims)
+        self.pseudo_measurement_car_velocity_forward = ground_truth_imu_velocity[:, 1, :]
 
         self.sample_time_interval = np.mean(self.timestamp[1:] - self.timestamp[:-1])
         self.sample_rate = 1 / self.sample_time_interval
